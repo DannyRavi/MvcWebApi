@@ -1,0 +1,21 @@
+﻿@using MvcWebApi.Models
+@model IEnumerable<Reservation>
+@{
+    ViewBag.Title = "index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Scripts{
+    
+    }
+
+@section Body{
+<div id="Summary" class="section panel panel-primary">
+    @Html.Partial("Summary", Model)
+</div>
+<div id="editor" class="section panel panel-primary">
+    @Html.Partial("Editor", new Reservation())
+</div>
+    }
+
+

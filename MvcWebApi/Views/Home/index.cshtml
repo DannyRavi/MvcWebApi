@@ -1,72 +1,62 @@
-﻿@*@using WebApiExample.Models
-    @model IEnumerable<Reservation>*@
-@{
+﻿@{
     ViewBag.Title = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 @section Scripts{
     <script>
-    var model = {
-        reservations: ko.observableArray(),
-        editor: {
-            name: ko.observable(""),
-            location: ko.observable("")
-        },
-        displaySummary: ko.observable(true)
+        var model = {
+            reservations: ko.observableArray(),
+            editor: {
+                name: ko.observable(""),
+                location: ko.observable("")
+            },
+            displaySummary: ko.observable(true)
+        };
+        function sendAjaxRequest(httpMethod, callback, url, reqData) {
+            $.ajax("/api/web" + (url ? "/" + url : ""), {
+                type: httpMethod,
+                success: callback, data: reqData});
+        }
+        function getAllItems() {
+            sendAjaxRequest("GET", function (data) {
+                model.reservations.removeAll();
+                for (var i = 0; i < data.length; i++) {
+                    model.reservations.push(data[i]);
+                }
+            });
+        }
 
-    };
-
-    function sendAjaxRequest(httpMethod, callback, url, reqData) {
-        $.ajax("/api/web" + (url ? "/" + url : ""), { type: httpMethod, success: callback, data: reqData });
-    }
-
-    function getAllItems() {
-        sendAjaxRequest("GET", function (data) {
-            model.reservations.removeAll();
-            for (var i = 0; i < data.length; i++) {
-                model.reservations.push(data[i]);
+        function removeItem(item) {
+            sendAjaxRequest("DELETE", function () {
+                getAllItems();
+            }, item.ReservationId);
+        }
+        function HandleEditorClick() {
+            sendAjaxRequest("POST", function (newItem) {
+                model.reservations.push(newItem);
+                model.displaySummary(true);
+                model.editor.name("");
+                model.editor.location("");
+            }, null,{
+                ClientName: model.editor.name,
+                Location: model.editor.location
+            });
+        }
+            function HandleCreateClick() {
+                model.displaySummary(false);
             }
-        });
-    }
-
-    function removeItem(item) {
-        sendAjaxRequest("DELETE", function () {
-            getAllItems();
-        }, item.ReservationId);
-    }
-
-    function HandleEditorClick() {
-        sendAjaxRequest("POST", function (newItem) {
-            model.reservations.push(newItem);
-            model.displaySummary(true);
-            model.editor.name("");
-            model.editor.location("");
-        }, null, {
-            ClientName: model.editor.name,
-            Location: model.editor.location
-        });
-    }
-
-    function HandleCreateClick() {
-        model.displaySummary(false);
-    }
-    $(document).ready(function () {
-        getAllItems();
-        ko.applyBindings(model);
-    });
+            $(document).ready(function () {
+                getAllItems();
+                ko.applyBindings(model);
+            });
 
     </script>
-
 }
 
 @section Body{
-    @*<div id="Summary" class="section panel panel-primary">
-            @Html.Partial("Summary", Model)
-        </div>
-        <div id="editor" class="section panel panel-primary">
-            @Html.Partial("Editor", new Reservation())
-        </div>*@
+
+
     <div id="Summary" class="section panel panel-primary" data-bind="if: model.displaySummary">
         <div class="panel-heading">Reservation Summary</div>
         <div class="panel-body">
@@ -75,7 +65,6 @@
                     <tr><th>Id</th><th>Name</th><th>Location</th></tr>
                 </thead>
                 <tbody data-bind="foreach: model.reservations">
-
                     <tr>
                         <td data-bind="text: ReservationId"></td>
                         <td data-bind="text: ClientName"></td>
@@ -84,7 +73,6 @@
                             <button class="btn btn-xs btn-primary" data-bind="click: removeItem">Remove</button>
                         </td>
                     </tr>
-
                 </tbody>
             </table>
             <button class="btn btn-primary" data-bind="click: HandleCreateClick">Create</button>
